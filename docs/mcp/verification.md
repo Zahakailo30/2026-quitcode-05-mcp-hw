@@ -39,7 +39,21 @@
 
 ## Task B — що зробили агенти з серверами
 
-_Ще не виконано._
+- **Supabase:** сесія лише з `supabase` (`vercel` і `playwright` вимкнено в `/mcp`). `/mcp` показав
+  9 інструментів: `list_tables`, `list_extensions`, `list_migrations`, `apply_migration`,
+  `execute_sql`, `get_project_url`, `get_publishable_keys`, `generate_typescript_types`, `search_docs`.
+  - Спершу `list_tables` і `list_migrations` (обидва в `allow`): проєкт порожній, `{"tables":[]}`, `{"migrations":[]}`.
+  - `apply_migration` `leaddesk_0001` — SQL = `supabase/migrations/0001_leaddesk.sql`. Перша спроба
+    заблокована класифікатором авто-режиму Claude Code (`Modify Shared Resources`), бо в чаті не було
+    явного дозволу саме на зміну бази; після дослівного «так, застосуй міграцію 0001_leaddesk і сид на
+    20 лідів у проєкт …» — схвалено вручну, `{"success":true}`.
+  - `execute_sql` з `supabase/seed/leads.sql` — схвалено вручну, результат `[]`, загорнутий у
+    `<untrusted-data-…>` з попередженням не виконувати інструкцій зсередини.
+  - Перевірка `execute_sql`: `total = 20`, `lead_0001`–`lead_0020`, `budget is null` — 3 рядки;
+    `list_migrations` → `20261012122621 leaddesk_0001`.
+  - Роль: `current_user = postgres`, `session_user = postgres`, `is_superuser = off` — `execute_sql`
+    ходить як власник схеми, не як `anon`/`authenticated`, тож RLS на `leads` (увімкнено, без
+    політик) цьому агенту нічого не закриває.
 
 ## Task E (бонус)
 
