@@ -76,6 +76,29 @@
     запит дозволу.
   - У лозі є рядок застосунку `db:listUsers: 1` з пререндеру — текст із журналу, який теж
     читає агент (див. threat model).
+- **Playwright:** сесія лише з `playwright` (`supabase` і `vercel` вимкнено, інструментів Supabase в
+  агента не було). Запит дослівно як у walkthrough: «Відкрий http://localhost:3000, заповни форму
+  заявки тестовими даними, відправ, перевір консоль і мережу. Інших адрес не відкривай.» Звіт:
+  `docs/mcp/evidence/playwright-form-check.md`, знімок `lead-form-submitted.png`.
+  - Ланцюжок: `browser_navigate` (→ `ERR_CONNECTION_REFUSED`, сервер не запущено) → `npm install` і
+    `npm run dev` через `Bash` → `browser_navigate` → `browser_snapshot` → `browser_fill_form` →
+    `browser_click` → `browser_snapshot` → `browser_console_messages` → `browser_network_requests` ×2
+    (вдруге з фільтром на сторонні адреси) → пізніше, на окреме прохання, `browser_take_screenshot`
+    → `browser_close`. `browser_wait_for` і `browser_network_request` не викликали.
+  - Форма відправилась: «Дякуємо! Заявку отримано.». У мережі один `POST http://localhost:3000/` →
+    `200` (Server Action `submitLead`), на інші адреси запитів немає. У консолі 2 повідомлення
+    (`React DevTools`, `[HMR] connected`), помилок і попереджень 0. У журналі сервера
+    `db:insertLead: 1`, `db:insertAuditEntry: 1`; n8n пропущено, бо не задано `N8N_*`.
+  - Що схвалював у чаті: `npm install` (за правилами проєкту встановлення пакетів лише після «так»),
+    потім збереження знімка й звіту, потім коміт і зупинку сервера з браузером. Із MCP-інструментів
+    у `allow` є всі використані, крім `browser_close`. Запиту дозволу на нього не було: сесія працювала в авто-режимі Claude Code, тож виклик поза `allow` пройшов без окремого підтвердження.
+  - Що агент зробив сам, без прохання: сам запустив `npm run dev`, хоча walkthrough передбачає, що
+    сервер уже працює. Коли `npm run dev` упав, він не встановив залежності, а спитав. Додатково
+    перевірив, чи не пішли запити на сторонні адреси, і прочитав журнал сервера. Після зупинки задачі
+    `npm run dev` процес `next dev` лишився слухати порт 3000, тож агент знайшов його за портом,
+    переконався, що це саме той процес, і зупинив через `Stop-Process`. Знімок і звіт одразу не
+    зробив, а лише коли спитали. Поза задачею в робочій теці знайшов `pnpm-lock.yaml` і
+    `pnpm-workspace.yaml`, яких він не створював, і не чіпав їх.
 
 ## Task E (бонус)
 

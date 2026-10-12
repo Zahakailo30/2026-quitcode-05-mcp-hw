@@ -101,15 +101,32 @@
       "mcp__vercel__get_edge_config_token",
       "mcp__vercel__get_edge_config_tokens",
       "mcp__vercel__list_feature_flag_sdk_keys",
-      "mcp__vercel__get_project_deletion_link"
+      "mcp__vercel__get_project_deletion_link",
+      "mcp__playwright__browser_run_code_unsafe",
+      "mcp__playwright__webmcp_*",
+      "mcp__playwright__browser_file_upload",
+      "mcp__playwright__browser_drop",
+      "mcp__playwright__browser_evaluate"
     ],
+
     "allow": [
       "mcp__supabase__search_docs",
       "mcp__supabase__list_tables",
       "mcp__supabase__list_migrations",
       "mcp__vercel__list_deployments",
       "mcp__vercel__get_deployment",
-      "mcp__vercel__get_deployment_build_logs"
+            "mcp__vercel__get_deployment_build_logs",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_find",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_wait_for"
     ]
+
   }
 }
