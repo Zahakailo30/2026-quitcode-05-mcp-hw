@@ -54,6 +54,28 @@
   - Роль: `current_user = postgres`, `session_user = postgres`, `is_superuser = off` — `execute_sql`
     ходить як власник схеми, не як `anon`/`authenticated`, тож RLS на `leads` (увімкнено, без
     політик) цьому агенту нічого не закриває.
+- **Vercel:** сесія лише з `vercel` (`supabase` і `playwright` вимкнено в `/mcp`). Форк підключено до
+  нового проєкту через git-інтеграцію в дашборді Vercel (не MCP, не CLI), налаштування збірки — за
+  замовчуванням. Запит: «Знайди останній деплой мого проєкту LeadDesk у Vercel і покажи лог його
+  білду. Нічого не деплой і не змінюй».
+  - Агент сам викликав `list_teams` і `list_projects`: це особиста команда за замовчуванням (Hobby,
+    я єдиний учасник). Вивід цих викликів у файли не записано.
+  - Перший прохід: `list_projects` / `list_deployments` → порожньо (проєкт ще не з'явився).
+    Другий: деплой знайдено, але `list_deployment_events` → **403 forbidden**, «Trying to access
+    resource under scope … You must re-authenticate to this scope», хоча `list_teams` повертав 0
+    команд. Помилка радила CLI-фолбек `vercel inspect --logs` — агент ним не скористався (CLI
+    працює під власним токеном в обхід `deny`). Після повторного Authenticate у `/mcp` і з явним
+    `teamId` лог віддався.
+  - Ланцюжок: `list_deployments` → `list_deployment_events` (`builds=1`, `limit=-1`), лише читання.
+    Деплой `dpl_FSBt19PfMh2MUiTsSux8iRsnv5vM`, production, `main`, коміт `958d2ee`, `READY`;
+    Next.js 16.3.5 (Turbopack), компіляція 12.6s, TypeScript 5.0s, 8/8 статичних сторінок, білд 36s.
+    Лог — `docs/mcp/evidence/vercel-build-log.txt`; перевірено grep, що в ньому немає id/slug
+    команди, id проєкту й посилання на інспектор.
+  - Розбіжність із `allow`: інструменту `get_deployment_build_logs` сервер зараз не надає, лог
+    білду віддає `list_deployment_events`. Його в `allow` немає, тож кожен виклик іде через
+    запит дозволу.
+  - У лозі є рядок застосунку `db:listUsers: 1` з пререндеру — текст із журналу, який теж
+    читає агент (див. threat model).
 
 ## Task E (бонус)
 
