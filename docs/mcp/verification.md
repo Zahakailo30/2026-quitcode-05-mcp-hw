@@ -102,4 +102,27 @@
 
 ## Task E (бонус)
 
-_Ще не виконано._
+**Варіант E1 — сервер LeadDesk по HTTP із захистом Host/Origin.**
+
+- Пакет: `@modelcontextprotocol/node` `2.1.0` (точна версія, `npm install --save-exact`) у
+  `mcp/leaddesk-server/package.json`; кореневі `package.json` і `package-lock.json` не змінено.
+- Щоб обидва транспорти брали ту саму фабрику, інструменти й ресурс перенесено з `server.mjs` у
+  `src/leaddesk.mjs` (`export const factory`, `git mv` — історія збережена). `server.mjs` тепер лише
+  `serveStdio(factory)`; перевірено: stdio-сервер на `tools/list` відповідає як раніше.
+- `src/http.mjs`: `toNodeHandler(createMcpHandler(factory))`, слухає лише `127.0.0.1:3333`.
+  `localhostHostValidation()` і `localhostOriginValidation()` викликаються вручну перед обробником —
+  опцією `toNodeHandler` їх не передати.
+- Перевірка — Git Bash, `node src/http.mjs` у фоні, тіло з `tools/list` у тимчасовому `body.json`
+  (поза репозиторієм, після перевірки видалено):
+
+| # | Запит | Очікувано | Отримано |
+|---|---|---|---|
+| 1 | звичайний, з `MCP-Protocol-Version: 2026-07-28` | 200, інструменти | `HTTP 200`, `{"result":{"tools":[{"name":"leaddesk_find_leads",…` |
+| 2 | `-H "Host: evil.example"` | 403 | `HTTP 403`, `{"jsonrpc":"2.0","error":{"code":-32000,"message":"Invalid Host: evil.example"},"id":null}` |
+| 3 | `-H "Origin: https://evil.example"` | 403 | `HTTP 403`, `{"jsonrpc":"2.0","error":{"code":-32000,"message":"Invalid Origin: evil.example"},"id":null}` |
+| 4 | без заголовка `MCP-Protocol-Version` | 400, `-32020` | `HTTP 400`, `{"jsonrpc":"2.0","error":{"code":-32020,"message":"Bad Request: the request headers and body disagree: the body envelope names protocol version 2026-07-28 but the required MCP-Protocol-Version header is absent",…},"id":1}` |
+
+- Що це закриває: DNS rebinding і запити зі сторінок у браузері (чужий `Host` / `Origin`) до
+  локального сервера, який може змінювати статуси лідів. Чого не закриває: будь-який локальний процес
+  без `Origin` і з `Host: 127.0.0.1` викличе сервер — автентифікації немає, тож `leaddesk_set_lead_status`
+  доступний кожній програмі на цій машині.

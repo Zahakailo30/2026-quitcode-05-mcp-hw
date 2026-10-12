@@ -19,7 +19,10 @@
 cd mcp/leaddesk-server
 npm ci
 node src/server.mjs          # stdio: чекає на JSON-RPC, журнал лише в stderr
+node src/http.mjs            # Streamable HTTP на http://127.0.0.1:3333/mcp, з перевіркою Host/Origin (Task E1)
 ```
+
+Інструменти й ресурс — у `src/leaddesk.mjs` (`factory`); `server.mjs` і `http.mjs` — лише транспорти.
 
 ## Перевірка Inspector'ом (Git Bash, з кореня репозиторію)
 
